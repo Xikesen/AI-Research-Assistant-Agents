@@ -61,81 +61,110 @@ Build and push three images:
 - `agent`
 - `frontend`
 
-Example:
-
+Procedure:
+1) Configure GCP and repository variables
 ```bash
-gcloud auth configure-docker us-central1-docker.pkg.dev
+export PROJECT_ID="your-gcp-project-id"
+export REGION="us-central1"
+export ZONE="us-central1-a"
+export REPO_NAME="option1"
+export CLUSTER_NAME="option1-gke"
 
-docker build -t us-central1-docker.pkg.dev/PROJECT/REPO/translator:latest Docker-NLP
-docker build -t us-central1-docker.pkg.dev/PROJECT/REPO/agent:latest agent-service
-docker build -t us-central1-docker.pkg.dev/PROJECT/REPO/frontend:latest frontend
+gcloud auth login
+gcloud config set project $PROJECT_ID
+gcloud services enable container.googleapis.com artifactregistry.googleapis.com
 
-docker push us-central1-docker.pkg.dev/PROJECT/REPO/translator:latest
-docker push us-central1-docker.pkg.dev/PROJECT/REPO/agent:latest
-docker push us-central1-docker.pkg.dev/PROJECT/REPO/frontend:latest
+gcloud artifacts repositories create $REPO_NAME \
+  --repository-format=docker \
+  --location=$REGION
+
+gcloud auth configure-docker ${REGION}-docker.pkg.dev
 ```
 
 ### Stage 2: Infrastructure + HPA + Internal Services
-
+First upload the entire folder (milvus-gke) to the Google Cloud CLI environment.
 1. Deploy Milvus using your existing `milvus-gke/`.
-2. Apply manifests in `infra/k8s/`.
-3. Ensure internal DNS-based access:
+```bash
+cd milvus-gke
+terraform init
+terraform apply -var="project_id=$PROJECT_ID" -var="zone=$ZONE" -var="region=$REGION"
+
+kubectl get svc -n milvus
+kubectl get pods -n milvus
+```
+2. Build and push 3 images
+Translator
+```bash
+docker build -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/translator:latest Docker-NLP
+docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/translator:latest
+```
+Agent
+```bash
+docker build -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/agent:latest agent-service
+docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/agent:latest
+```
+Streamlit
+```bash
+docker build -t ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/frontend:latest frontend
+docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/frontend:latest
+```
+
+3. Connect to the GKE cluster and deploy the application
+```bash
+gcloud container clusters get-credentials $CLUSTER_NAME --zone $ZONE --project $PROJECT_ID
+
+cd infra/k8s
+kubectl apply -f namespace.yaml
+kubectl apply -f configmap.yaml
+kubectl apply -f secret.example.yaml
+kubectl apply -f milvus-alias-service.yaml
+kubectl apply -f translator.yaml
+kubectl apply -f agent.yaml
+kubectl apply -f frontend.yaml
+
+kubectl get pods -n option1
+kubectl get svc -n option1
+kubectl get hpa -n option1
+
+kubectl logs -n option1 deploy/translator
+kubectl logs -n option1 deploy/agent
+kubectl logs -n option1 deploy/frontend
+```
+4.Test each service individually
+Translator
+```bash
+kubectl port-forward -n option1 svc/translator-svc 8000:8000
+```
+Use another terminal：
+```bash
+curl http://127.0.0.1:8000/healthz
+curl -X POST http://127.0.0.1:8000/detect-language \
+  -H "Content-Type: application/json" \
+  -d '{"text":"Hola, como estas?"}'
+```
+Agent
+```bash
+kubectl port-forward -n option1 svc/agent-svc 8080:8080
+curl http://127.0.0.1:8080/healthz
+```
+Streamlit
+```bash
+kubectl get svc -n option1 frontend-svc
+```
+
+5. Internal DNS-based access:
    - Translator: `http://translator-svc.option1.svc.cluster.local:8000`
    - Milvus: `milvus-svc.option1.svc.cluster.local:19530` (via `ExternalName` alias)
-4. HPA is configured for `translator` and `agent`:
+
+6. HPA is configured for `translator` and `agent`:
    - min replicas: 1
    - max replicas: 5
    - CPU threshold: 70%
 
-### Stage 3: Algorithm Experiment and Evaluation
-
-Run benchmark script after indexing papers:
-
-```bash
-python scripts/benchmark_indexes.py --output README_INDEX_RESULTS.csv
-```
-
-Paste the measured results in the table below:
-
-| Index Type | Index Time (s) | Storage Size (bytes) |
-|---|---:|---:|
-| IVF_PQ | TBD | TBD |
-| DISKANN | TBD | TBD |
-| HNSW | TBD | TBD |
-
-All similarity is cosine metric in this implementation.
-
-## 6) Functional Requirements Checklist
-
-- [x] Streamlit paper upload
-- [x] Domain selection (AI/Security/Other)
-- [x] Multilingual queries (`en`, `es`, `fr`, `it`)
-- [x] LangGraph agent as orchestrator
-- [x] Translator service via standard API
-- [x] Milvus retrieval with domain filter
-- [x] Response in same language as query
-- [x] Two recommended papers + references
-- [x] GKE deploy manifests + HPA
-- [x] Reference section excluded from indexed content
-
-## 7) API Summary
-
-### Translator (`Docker-NLP`)
-
-- `GET /healthz`
-- `POST /detect-language`
-- `POST /translate`
-
-### Agent (`agent-service`)
-
-- `GET /healthz`
-- `POST /ingest` (multipart PDF upload + metadata)
-- `POST /ask`
-
-## 8) Limitations and Assumptions
+### Stage 3: Limitations and Assumptions
 
 - `googletrans` may occasionally fail due to upstream limitations.
 - PDF text extraction quality depends on document formatting.
-- Current answer grounding is context-only prompting; stronger hallucination controls can be added with citation-by-span checks.
+- Current answer grounding is context-only prompting
+- stronger hallucination controls can be added with citation-by-span checks.
 - Benchmarks depend on current data volume and cluster resource state.
-
