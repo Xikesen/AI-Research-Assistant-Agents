@@ -7,6 +7,7 @@ AndrewID：yiqingz2
 - LangGraph-based Agent service
 - Translator service (FastAPI + googletrans)
 - Milvus vector database on GKE
+- 30 PDFs already categorized into `AI`, `Security`, `Other`
 
 It follows the deployment roadmap and grading requirements in `Course_Project_Options.pdf`.
 
@@ -17,7 +18,7 @@ flowchart LR
     U[User] --> S[Streamlit Frontend]
     S --> A[LangGraph Agent Service]
     A --> T[Translator Service]
-    A --> M[Milvus Vector DB]
+    A --> M[Milvus]
     S --> A
     A --> S
 ```
@@ -29,8 +30,6 @@ flowchart LR
 - `frontend/`: Streamlit UI
 - `milvus-gke/`: Existing Terraform for Milvus deployment on GKE
 - `infra/k8s/`: K8s manifests for translator/agent/frontend + HPA
-- `infra/terraform/`: Optional Terraform for base GKE cluster
-- `academic_papers/`: 30 PDFs already categorized into `AI`, `Security`, `Other`
 
 ## 2) Data/Schema Design
 
@@ -52,38 +51,7 @@ In `agent-service/app/pdf_utils.py`, the ingestion logic stops parsing once it s
 
 Everything after that heading is discarded before chunking/embedding.
 
-## 4) Local Run (Quick Test)
-
-### Translator
-
-```bash
-cd Docker-NLP
-pip install -r requirements.txt
-uvicorn app.main:app --host 0.0.0.0 --port 8000
-```
-
-### Agent
-
-```bash
-cd agent-service
-pip install -r requirements.txt
-export GOOGLE_API_KEY="YOUR_KEY"
-export TRANSLATOR_BASE_URL="http://localhost:8000"
-export MILVUS_HOST="127.0.0.1"
-export MILVUS_PORT="19530"
-uvicorn app.main:app --host 0.0.0.0 --port 8080
-```
-
-### Frontend
-
-```bash
-cd frontend
-pip install -r requirements.txt
-export AGENT_BASE_URL="http://localhost:8080"
-streamlit run app.py
-```
-
-## 5) GKE Deployment Roadmap
+## 4) GKE Deployment Roadmap
 
 ### Stage 1: Containerization + Artifact Registry
 
