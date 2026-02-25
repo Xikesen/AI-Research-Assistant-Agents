@@ -171,6 +171,7 @@ Limitations
 - Benchmarks depend on current data volume and cluster resource state.
 
 Design Decisions
+- I implemented a LangGraph-based custom tool calling agent 
 - Streamlit + Agent + Translator + Milvus: The system is split into independent services: Streamlit frontend, LangGraph-based agent, translator API, and Milvus vector database. This keeps responsibilities clear and simplifies deployment, scaling, and debugging on GKE.
 - Agent as the single orchestrator: The frontend communicates only with the agent. The agent handles translation, retrieval, and answer generation. This centralizes workflow logic and enforces a consistent API contract.
 - Multilingual workflow via translation pivot: User queries are detected/translated into English for retrieval and generation, then translated back to the user’s original language (en/es/fr/it). This improves retrieval consistency with a single embedding/query pipeline.
