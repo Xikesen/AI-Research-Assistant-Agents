@@ -10,6 +10,7 @@ AndrewID：yiqingz2
 - 30 PDFs already categorized into `AI`, `Security`, `Other`
 
 It follows the deployment roadmap and grading requirements in `Course_Project_Options.pdf`.
+Function demonstration video: https://cmu.box.com/s/ntc2rc8r0jnnvyk5s9pdo2nrlnwx9un6
 
 ## Architecture Diagram
 
