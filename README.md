@@ -161,10 +161,19 @@ kubectl get svc -n option1 frontend-svc
    - max replicas: 5
    - CPU threshold: 70%
 
-### Stage 3: Limitations and Assumptions
-
+### Stage 3: Limitations and Design Decisions
+Limitations
 - `googletrans` may occasionally fail due to upstream limitations.
 - PDF text extraction quality depends on document formatting.
 - Current answer grounding is context-only prompting
 - stronger hallucination controls can be added with citation-by-span checks.
 - Benchmarks depend on current data volume and cluster resource state.
+
+Design Decisions
+- Streamlit + Agent + Translator + Milvus: The system is split into independent services: Streamlit frontend, LangGraph-based agent, translator API, and Milvus vector database. This keeps responsibilities clear and simplifies deployment, scaling, and debugging on GKE.
+- Agent as the single orchestrator: The frontend communicates only with the agent. The agent handles translation, retrieval, and answer generation. This centralizes workflow logic and enforces a consistent API contract.
+- Multilingual workflow via translation pivot: User queries are detected/translated into English for retrieval and generation, then translated back to the user’s original language (en/es/fr/it). This improves retrieval consistency with a single embedding/query pipeline.
+- Hallucination-aware generation strategy: The generation prompt instructs the model to answer only from retrieved context and explicitly acknowledge insufficient evidence. This reduces unsupported claims.
+- Reference-section exclusion during ingestion: PDF parsing stops at References / Bibliography, and all subsequent content is discarded before chunking and embedding. This prevents bibliography-only chunks from polluting retrieval.
+- Domain-aware retrieval with explicit metadata schema: Milvus stores id, paper_title, domain, language, text_chunk, and embedding. Queries apply a domain filter (AI/Security/Other) to improve relevance and align with project requirements.
+- Kubernetes networking and exposure policy: translator and agent use internal ClusterIP services; frontend uses LoadBalancer. This minimizes public exposure while keeping user access simple.
