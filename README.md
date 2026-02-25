@@ -1,6 +1,7 @@
 # Option 1: Research Assistant on GKE
 
-This repository provides a simple, complete Option 1 implementation:
+Coco Zhang 
+AndrewID：yiqingz2
 
 - Streamlit frontend
 - LangGraph-based Agent service
