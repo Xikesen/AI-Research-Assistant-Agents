@@ -10,7 +10,7 @@ AndrewID：yiqingz2
 - 30 PDFs already categorized into `AI`, `Security`, `Other`, you can fine them on: https://cmu.box.com/s/73bv9vlxhcznyf38zmyie077yd0i3iwr
 
 It follows the deployment roadmap and grading requirements in `Course_Project_Options.pdf`.
-Function demonstration video: https://cmu.box.com/s/ntc2rc8r0jnnvyk5s9pdo2nrlnwx9un6
+Function demonstration video: https://cmu.box.com/s/ntc2rc8r0jnnvyk5s9pdo2nrlnwx9un6 \
 Code video：https://cmu.box.com/s/iy38iz2cyp7mzy536jjldzvpdjy44vd7
 
 ## Architecture Diagram
