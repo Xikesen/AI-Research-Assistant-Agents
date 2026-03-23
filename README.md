@@ -7,7 +7,11 @@
 - 30 PDFs already categorized into `AI`, `Security`, `Other`.
 - demo video is in "demo.mov"
 
-https://github.com/user-attachments/assets/c5e8c64b-f072-4a09-add9-7fc691e551a3
+
+
+https://github.com/user-attachments/assets/25123b76-62b2-40e2-8b94-594c4e8c6edc
+
+
 
 ## Architecture Diagram
 
