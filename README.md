@@ -4,8 +4,8 @@
 - LangGraph-based Agent service
 - Translator service (FastAPI + googletrans)
 - Milvus vector database on GKE
-- 30 PDFs already categorized into `AI`, `Security`, `Other`.
-- demo video is in "demo.mov"
+- 30 PDFs already categorized into AI, Security, Other, you can fine them on: https://cmu.box.com/s/73bv9vlxhcznyf38zmyie077yd0i3iwr
+- Demo video shows below.
 
 
 
