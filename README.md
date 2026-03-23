@@ -5,6 +5,7 @@
 - Translator service (FastAPI + googletrans)
 - Milvus vector database on GKE
 - 30 PDFs already categorized into `AI`, `Security`, `Other`.
+- demo video is in "demo.mov"
 
 
 ## Architecture Diagram
