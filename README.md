@@ -181,3 +181,4 @@ Design Decisions
 - Reference-section exclusion during ingestion: PDF parsing stops at References / Bibliography, and all subsequent content is discarded before chunking and embedding. This prevents bibliography-only chunks from polluting retrieval.
 - Domain-aware retrieval with explicit metadata schema: Milvus stores id, paper_title, domain, language, text_chunk, and embedding. Queries apply a domain filter (AI/Security/Other) to improve relevance and align with project requirements.
 - Kubernetes networking and exposure policy: translator and agent use internal ClusterIP services; frontend uses LoadBalancer. This minimizes public exposure while keeping user access simple.
+# AI-Research-Assistant---GKE
